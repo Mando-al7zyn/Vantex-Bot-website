@@ -11,7 +11,7 @@
             --bg: #0f1216;
             --card: rgba(35, 39, 42, 0.85);
             --text: #dcddde;
-            --title: #5865f2; /* لون ديسكورد الرسمي */
+            --title: #5865f2;
             --sub: #99aab5;
             --accent: #5865f2;
             --success: #3ba55c;
@@ -30,7 +30,6 @@
             min-height: 100vh;
         }
 
-        /* Navbar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -74,11 +73,6 @@
             transition: var(--transition);
         }
 
-        .lang-btn:hover {
-            filter: brightness(1.2);
-            transform: translateY(-1px);
-        }
-
         .container {
             max-width: 1100px;
             margin: 40px auto;
@@ -97,19 +91,7 @@
             transition: var(--transition);
             object-fit: cover;
         }
-        
-        .hero-logo:hover {
-            transform: scale(1.05);
-            border-color: var(--title);
-        }
 
-        .header-info h1 {
-            font-size: 2.5rem;
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        /* Grid Layout */
         .legal-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -129,7 +111,6 @@
         .card:hover {
             transform: translateY(-8px);
             border-color: var(--title);
-            background: rgba(44, 47, 51, 0.95);
         }
 
         .card h2 {
@@ -159,10 +140,14 @@
             font-size: 1.2rem;
         }
 
+        .dev-card {
+            background: linear-gradient(145deg, rgba(88, 101, 242, 0.15), var(--card));
+            border-left: 4px solid var(--title);
+        }
+
         .links-card {
             grid-column: 1 / -1;
             text-align: center;
-            background: linear-gradient(145deg, rgba(88, 101, 242, 0.1), var(--card));
         }
 
         .action-buttons {
@@ -187,10 +172,6 @@
 
         .btn-invite { background: var(--success); }
         .btn-support { background: var(--accent); }
-        .btn:hover { 
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
 
         footer {
             text-align: center;
@@ -201,11 +182,6 @@
         }
 
         [lang="ar"] .en-content, [lang="en"] .ar-content { display: none; }
-
-        @media (max-width: 600px) {
-            .header-info h1 { font-size: 1.8rem; }
-            .hero-logo { width: 100px; height: 100px; }
-        }
     </style>
 </head>
 
@@ -235,6 +211,21 @@
     </div>
 
     <div class="legal-grid">
+        <div class="card dev-card">
+            <h2 class="ar-content"><i class="fas fa-users-gear"></i> الإدارة والتطوير</h2>
+            <h2 class="en-content"><i class="fas fa-users-gear"></i> Admin & Dev</h2>
+            <ul class="ar-content">
+                <li><i class="fas fa-user-crown"></i> <span><strong>المطور:</strong> Embaby (1gZ)</span></li>
+                <li><i class="fas fa-people-group"></i> <span><strong>الفريق:</strong> 𝚀𝐢𝐫</span></li>
+                <li><i class="fas fa-shield-check"></i> <span><strong>الحالة:</strong> مشروع رسمي معتمد</span></li>
+            </ul>
+            <ul class="en-content">
+                <li><i class="fas fa-user-crown"></i> <span><strong>Developer:</strong> Embaby (1gZ)</span></li>
+                <li><i class="fas fa-people-group"></i> <span><strong>Team:</strong> 𝚀𝐢𝐫</span></li>
+                <li><i class="fas fa-shield-check"></i> <span><strong>Status:</strong> Official Certified Project</span></li>
+            </ul>
+        </div>
+
         <div class="card">
             <h2 class="ar-content"><i class="fas fa-shield-halved"></i> سياسة الخصوصية</h2>
             <h2 class="en-content"><i class="fas fa-shield-halved"></i> Privacy Policy</h2>
@@ -274,7 +265,7 @@
                     <span class="ar-content">إضافة البوت</span>
                     <span class="en-content">Invite Bot</span>
                 </a>
-                <a href="#" class="btn btn-support">
+                <a href="https://discord.gg/9bGhBVCqCf" class="btn btn-support" target="_blank">
                     <i class="fas fa-headset"></i>
                     <span class="ar-content">سيرفر الدعم</span>
                     <span class="en-content">Support</span>
@@ -285,8 +276,8 @@
 </div>
 
 <footer>
-    <p class="ar-content">© 2025 فريق Arab BOT — جميع الحقوق محفوظة</p>
-    <p class="en-content">© 2025 Arab BOT Team — All Rights Reserved</p>
+    <p class="ar-content">© 2025 فريق 𝚀𝐢𝐫 — بواسطة Embaby (1gZ)</p>
+    <p class="en-content">© 2025 𝚀𝐢𝐫 Team — By Embaby (1gZ)</p>
 </footer>
 
 <script>
