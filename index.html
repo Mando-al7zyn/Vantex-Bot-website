@@ -445,8 +445,7 @@
   <div>
     <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع">☀️</button>
     <button class="lang-toggle" id="langBtn">English</button>
-    <button class="dashboard-toggle" id="dashboard">dashboard</button>
-
+  <button class="dashboard-toggle" id="dashboard">dashboard</button>
   </div>
 </nav>
 <main>
@@ -698,7 +697,176 @@ logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('discord_access_token');
   location.href = 'https://1gz22.github.io/Vantex-Bot-website/';
 });
+// تفعيل تسجيل الدخول وجلب البيانات
+window.onload = () => {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    let accessToken = fragment.get('access_token') || localStorage.getItem('discord_access_token');
+    if (accessToken) {
+        localStorage.setItem('discord_access_token', accessToken);
+   
+        // تبديل الواجهة
+        legalContent.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+        notLoggedIn.classList.add('hidden');
+        loggedInView.classList.remove('hidden');
+        // جلب بيانات المستخدم
+        fetch('https://discord.com/api/users/@me', {
+            headers: { authorization: `Bearer ${accessToken}` }
+        })
+        .then(res => res.json())
+        .then(user => {
+            document.getElementById('user-name').innerText = `${user.username}#${user.discriminator}`;
+            document.getElementById('user-id').innerText = `ID: ${user.id}`;
+            document.querySelector('.user-avatar').src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+        })
+        .catch(() => {
+            localStorage.removeItem('discord_access_token');
+            location.reload();
+        });
+        // جلب السيرفرات
+        fetch('https://discord.com/api/users/@me/guilds', {
+            headers: { authorization: `Bearer ${accessToken}` }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to fetch guilds');
+            return res.json();
+        })
+        .then(guilds => {
+            const guildsList = document.getElementById('guilds-list');
+            guildsList.innerHTML = '';
+            if (guilds.length === 0) {
+                guildsList.innerHTML = '<p style="text-align:center; color:var(--text2);">لا توجد سيرفرات تملك فيها صلاحيات إدارية.</p>';
+                return;
+            }
+            const manageableGuilds = guilds.filter(g => g.owner || (g.permissions & 0x8) === 0x8);
+            if (manageableGuilds.length === 0) {
+                guildsList.innerHTML = '<p style="text-align:center; color:var(--text2);">لا توجد سيرفرات يمكنك إدارتها حالياً.</p>';
+                return;
+            }
+            manageableGuilds.forEach(guild => {
+                const card = document.createElement('div');
+                card.classList.add('guild-card');
+                card.innerHTML = `
+                    <div class="guild-info">
+                        <img src="${guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64` : 'https://discord.com/assets/dd4dbc0016779df1378e7812eabaa04d.png'}"
+                             class="guild-icon" alt="${guild.name}">
+                        <div class="guild-details">
+                            <div class="guild-name">${guild.name}</div>
+                            <div class="guild-id">ID: ${guild.id}</div>
+                        </div>
+                    </div>
+                    <div class="guild-buttons">
+                        <div id="premium-status-${guild.id}" class="premium-status">جاري التحميل...</div>
+                        <div style="display: flex; gap: 0.8rem;">
+                            <button class="btn btn-secondary stats-btn" data-guild-id="${guild.id}" style="padding:0.8rem 1.5rem; font-size:1rem;">
+                                <i class="fa-solid fa-chart-bar"></i> ستاتس
+                            </button>
+                            <a href="https://1gz22.github.io/Vantex-Bot-website/dashboard.html?guild=${guild.id}" 
+                               class="btn btn-primary" style="padding:0.8rem 1.5rem; font-size:1rem;">
+                                <i class="fa-solid fa-cog"></i> لوحة التحكم
+                            </a>
+                            <a href="https://discord.com/oauth2/authorize?client_id=1423325443393589290&permissions=8&scope=bot&guild_id=${guild.id}&disable_guild_select=true"
+                               target="_blank" class="btn btn-success" style="padding:0.8rem 1.5rem; font-size:1rem; display: none;" id="add-bot-btn-${guild.id}">
+                                <i class="fa-brands fa-discord"></i> إضافة البوت
+                            </a>
+                        </div>
+                    </div>
+                `;
+                guildsList.appendChild(card);
 
+                // جلب حالة البريميوم (افترض API خارجي)
+                fetch(`https://your-api-domain.com/api/premium?guild_id=${guild.id}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    const statusDiv = document.getElementById(`premium-status-${guild.id}`);
+                    statusDiv.textContent = data.premium ? 'بريميوم مفعل' : 'بريميوم غير مفعل';
+                    statusDiv.classList.add(data.premium ? 'premium-active' : 'premium-inactive');
+                  })
+                  .catch(() => {
+                    const statusDiv = document.getElementById(`premium-status-${guild.id}`);
+                    statusDiv.textContent = 'خطأ في التحميل';
+                    statusDiv.classList.add('premium-inactive');
+                  });
+
+                // التحقق إذا كان البوت مضاف (افترض API خارجي للتحقق)
+                fetch(`https://your-api-domain.com/api/is_bot_in_guild?guild_id=${guild.id}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    const addBotBtn = document.getElementById(`add-bot-btn-${guild.id}`);
+                    const dashboardBtn = card.querySelector('.btn-primary');
+                    if (!data.is_in_guild) {
+                      addBotBtn.style.display = 'inline-flex';
+                      dashboardBtn.style.display = 'none';
+                    }
+                  })
+                  .catch(() => {});
+            });
+
+            // إضافة حدث لأزرار الستاتس
+            document.querySelectorAll('.stats-btn').forEach(btn => {
+              btn.addEventListener('click', () => showGuildStats(btn.dataset.guildId, accessToken));
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('guilds-list').innerHTML =
+                '<p style="text-align:center; color:#ed4245;">حدث خطأ أثناء جلب السيرفرات. حاول مرة أخرى.</p>';
+        });
+        // تنظيف الرابط
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+};
+
+// دالة عرض إحصائيات السيرفر
+function showGuildStats(guildId, accessToken) {
+  const modal = document.getElementById('stats-modal');
+  const statsList = document.getElementById('stats-list');
+  const overlay = document.getElementById('overlay');
+  statsList.innerHTML = '<li>جاري التحميل...</li>';
+  modal.classList.add('show');
+  overlay.classList.add('show');
+
+  // جلب معلومات السيرفر من Discord API
+  fetch(`https://discord.com/api/guilds/${guildId}`, {
+    headers: { authorization: `Bearer ${accessToken}` }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Failed to fetch guild details');
+    return res.json();
+  })
+  .then(guild => {
+    // جلب عدد الأوامر من API خاص بالبوت (افترض)
+    return fetch(`https://your-api-domain.com/api/commands_count?guild_id=${guildId}`)
+      .then(res => res.json())
+      .then(commandsData => ({ guild, commandsCount: commandsData.count || 0 }));
+  })
+  .then(({ guild, commandsCount }) => {
+    const createdAt = new Date(guild.created_at).toLocaleDateString('ar-EG');
+    statsList.innerHTML = `
+      <li>تاريخ الإنشاء: <strong>${createdAt}</strong></li>
+      <li>عدد الأعضاء: <strong>${guild.approximate_member_count || guild.member_count || 'غير متوفر'}</strong></li>
+      <li>عدد الرولات: <strong>${guild.roles.length}</strong></li>
+      <li>عدد الرومات: <strong>${guild.channels ? guild.channels.length : 'غير متوفر'}</strong></li>
+      <li>عدد الأوامر: <strong>${commandsCount}</strong></li>
+      <li>وصف السيرفر: <strong>${guild.description || 'لا يوجد وصف'}</strong></li>
+      <li>مستوى التحقق: <strong>${guild.verification_level}</strong></li>
+    `;
+  })
+  .catch(err => {
+    console.error(err);
+    statsList.innerHTML = '<li style="color:#ed4245;">حدث خطأ أثناء جلب الإحصائيات.</li>';
+  });
+}
+
+// إغلاق المودال
+function closeStatsModal() {
+  const modal = document.getElementById('stats-modal');
+  const overlay = document.getElementById('overlay');
+  modal.classList.remove('show');
+  overlay.classList.remove('show');
+}
+
+if (navigator.language.startsWith('en')) toggleLang();
 </script>
 </body>
 </html>
